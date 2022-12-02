@@ -1,0 +1,36 @@
+---
+- name: "FTP 서버 구축"
+  gather_facts: no
+  hosts: test
+  tasks:
+    # 1) 패키지 설치 - vsftpd
+    # 2) root 사용자 접근 허용 - /etc/vsftpd/{ftpusers,user_list}
+    # 3) 서비스 기동 - vsftpd
+    # 4) 방화벽에 등록
+    - name: "# 1) 패키지 설치 - vsftpd"
+      yum: 
+        name: vsftpd
+        state: latest
+
+    - name: "2) root 사용자 접근 허용 - /etc/vsftpd/{ftpusers,user_list}"
+      lineinfile: 
+        path: "{{ item }}"
+        regexp: '^root$'
+        line: '#root'
+      loop:
+        - /etc/vsftpd/ftpusers
+        - /etc/vsftpd/user_list
+
+    - name: "3) 서비스 기동 - vsftpd"
+      service:
+        name: vsftpd
+        state: started
+        enabled: yes
+
+    - name: "4) 방화벽에 등록"
+      firewalld:
+        service: ftp
+        state: enabled
+        permanent: yes
+        immediate: yes
+ 

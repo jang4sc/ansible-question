@@ -1,0 +1,2 @@
+- name: docker
+  src: https://galaxy.ansible.com/download/community-docker-3.2.2.tar.gz

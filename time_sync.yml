@@ -1,0 +1,10 @@
+---
+- name: Syncronize the time
+  hosts: all
+  gather_facts: no
+  vars:
+    timesync_ntp_servers:
+      - hostname: time.bora.net
+        iburst: yes
+  roles:
+    - rhel-system-roles.timesync        

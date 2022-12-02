@@ -1,0 +1,73 @@
+---
+- name: "하드웨어 정보 수집"
+  hosts: all
+  gather_facts: yes
+  tasks:
+    # 1) 파일 배포 (files/hwreport.empty -> /root/hwreport.txt)
+    # 2) hwreport.txt - inventory hostname 설정
+    # 3) hwreport.txt - bios version 설정
+    # 4) hwreport.txt - disk size 설정 - /dev/sd[a-c]
+    - name: "1) 파일 배포 (files/hwreport.empty -> /root/hwreport.txt)"
+      copy: 
+        src: files/hwreport.empty
+        dest: /root/hwreport.txt
+
+    - name: "2) hwreport.txt - inventory hostname 설정" 
+      lineinfile:
+        path: /root/hwreport.txt
+        regexp: '^HOST='
+        line: "HOST={{ ansible_hostname }}"
+
+    - name: "3) hwreport.txt - bios version 설정"
+      lineinfile:
+        path: /root/hwreport.txt
+        regexp: '^BIOS='
+        line: "BIOS={{ ansible_bios_version }}"
+
+    - name: "4) hwreport.txt - memory size 설정"
+      lineinfile:
+        path: /root/hwreport.txt
+        regexp: '^MEMORY='
+        line: "MEMORY={{ ansible_memtotal_mb }}"    
+
+    - name: "5) hwreport.txt - sda disk size"
+      lineinfile:
+        path: /root/hwreport.txt
+        regexp: '^SDA_DISK_SIZE='
+        line: |
+          {% if ansible_facts['devices']['sda'] is defined %}
+          SDA_DISK_SIZE={{ ansible_facts['devices']['sda']['size'] }}
+          {% else %}            
+          SDA_DISK_SIZE=none
+          {% endif %}
+        state: present    
+    
+    - name: "6) hwreport.txt - sdb disk size"
+      lineinfile:
+        path: /root/hwreport.txt
+        regexp: '^SDB_DISK_SIZE='
+        line: |
+          {% if ansible_facts['devices']['sdb'] is defined %}
+          SDB_DISK_SIZE={{ ansible_facts['devices']['sdb']['size'] }}
+          {% else %}
+          SDB_DISK_SIZE=none
+          {% endif %}
+        state: present
+
+    - name: "7) hwreport.txt - sdb disk size"
+      lineinfile:
+        path: /root/hwreport.txt
+        regexp: '^SDC_DISK_SIZE='
+        line: |
+          {% if ansible_facts['devices']['sdc'] is defined %}
+          SDC_DISK_SIZE={{ ansible_facts['devices']['sdc']['size'] }}
+          {% else %}
+          SDC_DISK_SIZE=none
+          {% endif %}
+        state: present
+
+    - name: "하드웨어 보고서 수집하기"
+      fetch: 
+        src: /root/hwreport.txt
+        dest: results/hwreport-{{ inventory_hostname }}
+        flat: yes

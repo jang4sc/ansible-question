@@ -1,0 +1,48 @@
+---
+- name: Configure LVM
+  hosts: webservers
+  tasks:
+    # 1) partition - /dev/sdb1
+    # 2) lvm 
+    # 2-1) pv -> vg(/dev/research(1G))
+    # 2-2) lv(/dev/research/data(500Mib))
+    # 3) filesystem(ext4)
+    # 4) mount(/mnt/resarch)
+    - name: "1) partition - /dev/sdb1"
+      parted:
+        device: /dev/sdb
+        number: 1
+        flags: [ lvm ]
+        state: present
+        part_end: 100%
+        fs_type: ext4
+      when: ansible_facts['devices']['sdb'] is defined
+
+    # 2) lvm 
+    # 2-1) pv -> vg(/dev/research(1G))
+    - name: "2-1) pv -> vg(/dev/research(1G))"
+      lvg:
+        vg: research
+        pvs: /dev/sdb1
+      when: ansible_facts['devices']['sdb']['partitions']['sdb1'] is defined
+
+    # 2-2) lv(/dev/research/data(500Mib))
+    - name: "2-2) lv(/dev/research/data(500Mib))"
+      lvol: 
+        vg: research
+        lv: data
+        size: 500m
+
+    # 3) filesystem(ext4)
+    - name: "3) filesystem(ext4)"
+      filesystem:
+        dev: /dev/research/data
+        fstype: ext4
+
+    # 4) mount(/mnt/resarch)
+    - name: "4) mount(/mnt/resarch)"
+      mount: 
+        path: /mnt/research
+        src: /dev/research/data
+        fstype: ext4
+        state: mounted

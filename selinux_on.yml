@@ -1,0 +1,12 @@
+---
+- name: Configuring the SELinux to enforcing
+  hosts: all
+  gather_facts: no
+  tasks: 
+    - name: Configure the /etc/selinux/config
+      lineinfile:
+        path: /etc/selinux/config
+        regexp: '^SELINUX='
+        line: SELINUX=enforcing
+    - name: Reboot the all systems
+      reboot:        

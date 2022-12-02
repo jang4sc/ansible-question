@@ -1,0 +1,21 @@
+---
+- name: TUI 환경으로 전환
+  gather_facts: no
+  hosts: all
+  tasks:
+    - name: "systemctl set-default multi-user.target"
+      file:
+        path: /etc/systemd/system/default.target
+        state: absent
+
+    - name: "ln -s /usr/lib/systemd/system/multi-user.target /etc/systemd/system/default.target"
+      file: 
+        src: /usr/lib/systemd/system/multi-user.target
+        # src: /usr/lib/systemd/system/graphical.target
+        dest: /etc/systemd/system/default.target
+        state: link
+
+    - name: "systemctl isolate multi-user.target"
+      command: systemctl isolate multi-user.target
+      # command: systemctl isolate graphical.target
+

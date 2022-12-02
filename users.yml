@@ -1,0 +1,58 @@
+---
+- name: "사용자 추가1"
+  hosts: dev,test
+  gather_facts: yes
+  vars_files:
+    - vars/pw.yml
+    - vars/userlist.yml
+  tasks:
+    # 1) 그룹 추가
+    # 2) 사용자 추가 - user, passwd, secondary group
+    - name: "그룹 추가"
+      group: 
+        name: "{{ item.groups }}"
+        state: present
+      loop: "{{ users }}"
+      when: 
+        - ( inventory_hostname in groups["dev"] ) or (inventory_hostname in groups["test"])
+        - ( item.username == "developer" )
+
+    - name: "사용자 추가"
+      user: 
+        name: "{{ item.username }}"
+        groups: "daemon"
+        append: yes
+        password: "{{ pw_developer | password_hash('sha512') }}"
+      loop: "{{ users }}"
+      when: 
+        - ( inventory_hostname in groups["dev"] ) or (inventory_hostname in groups["test"])
+        - ( item.username == "developer" )
+
+- name: "사용자 추가2"
+  hosts: prod
+  gather_facts: yes
+  vars_files:
+    - vars/pw.yml
+    - vars/userlist.yml
+  tasks:
+    # 1) 그룹 추가
+    # 2) 사용자 추가 - user, passwd, secondary group
+    - name: "그룹 추가"
+      group: 
+        name: "{{ item.groups }}"
+        state: present
+      loop: "{{ users }}"
+      when: 
+        - ( inventory_hostname in groups["prod"] )
+        - ( item.username == "manager" )
+
+    - name: "사용자 추가"
+      user: 
+        name: "{{ item.username }}"
+        groups: "daemon"
+        append: yes
+        password: "{{ pw_manager | password_hash('sha512') }}"
+      loop: "{{ users }}"
+      when: 
+        - ( inventory_hostname in groups["prod"] )
+        - ( item.username == "manager" )      

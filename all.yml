@@ -1,0 +1,10 @@
+---
+- name: "Install the pakages"
+  import_playbook: packages.yml
+
+- name: "Syncronize the server time"
+  import_playbook: time_sync.yml
+
+- name: "Configure the web server"
+  import_playbook: webservers.yml
+  

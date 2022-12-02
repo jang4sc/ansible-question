@@ -1,0 +1,36 @@
+---
+- name: Configuring the web servers
+  hosts: webservers
+  gather_facts: yes
+  tasks:
+    - name: Install the packages - httpd, firewalld
+      yum: 
+        name: 
+          - httpd
+          - firewalld
+        state: latest
+    
+    - name: Configuring files - /var/www/html/hello.html
+      template:
+        src: templates/hello.html.j2
+        dest: /var/www/html/hello.html
+
+    - name: Start the services - httpd, firewalld
+      service:
+        name: "{{ item }}"
+        state: restarted
+        enabled: yes
+      loop:
+        - httpd
+        - firewalld
+    
+    - name: Open the port with firewall - http, https
+      firewalld:
+        service: "{{ item }}"
+        state: enabled
+        permanent: yes
+        immediate: yes
+      loop: 
+        - http
+        - https
+        

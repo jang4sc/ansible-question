@@ -1,0 +1,11 @@
+---
+- name: Configure /etc/issue
+  hosts: all
+  tasks:
+    - name: /etc/issue
+      template:
+        src: templates/issue.j2
+        dest: /etc/issue
+        owner: root
+        group: root
+        mode: '0644'

@@ -1,0 +1,47 @@
+---
+- name: Make a directory for web content
+  hosts: webservers
+  gather_facts: no
+  tasks:
+    # 1) /webdev 디렉토리 생성
+    # 2) /webdev 디렉토리 SELinux 설정
+    # 3) 심볼릭 링크 생성 (/var/www/html/webdev -> /webdev)
+    # 4) /webdev/index.html 파일 생성
+    # 5) 웹페이지 테스트
+    - name: "1) /webdev 디렉토리 생성"
+      file:
+        path: /webdev
+        state: directory
+        group: apache
+        mode: '2775'
+
+    - name: "/webdev 디렉토리 SELinux 설정"  
+      sefcontext:
+        target: '/webdev(/.*)?'
+        setype: httpd_sys_content_t
+        state: present
+    - name: "/webdev 디렉토리 SELinux 설정 적용"
+      command: restorecon -irv /webdev  
+
+    - name: "3) 심볼릭 링크 생성 (/var/www/html/webdev -> /webdev)"
+      file:
+        src: /webdev
+        dest: /var/www/html/webdev
+        owner: root
+        group: root
+        state: link
+
+    - name: "4) /webdev/index.html 파일 생성"        
+      copy: 
+        src: files/index.html
+        dest: /webdev/index.html
+
+- name: Test the web server
+  hosts: test
+  gather_facts: no
+  tasks:
+    - name: "Test the web server http://ansible3.example.com/webdev"
+      uri:
+        url: http://ansible3.example.com/webdev
+        return_content: yes
+        status_code: 200

@@ -1,0 +1,16 @@
+---
+- name: 잡 스케줄링 설정하기
+  hosts: test
+  gather_facts: no
+  tasks:
+    - name: "Creates a cron file under /etc/cron.d"
+      # 0,30  *  *  *  1-5  date >> /home/ansible/datefile
+      cron:
+        name: datejob
+        minute: "0,30"
+        hour: "*"
+        day: "*"
+        month: "*"
+        weekday: "1-5"
+        job: "date >> /home/ansible/datefile"
+        user: ansible
